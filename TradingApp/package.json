@@ -10,6 +10,8 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "amqplib": "^0.10.4"
+    "amqplib": "^0.10.4",
+    "dotenv": "^16.4.5",
+    "kleur": "^4.1.5"
   }
 }
