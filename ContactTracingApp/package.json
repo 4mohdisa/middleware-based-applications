@@ -1,15 +1,18 @@
 {
-  "name": "contacttracingapp",
+  "name": "contact-tracing-system",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start:person": "node ./src/person/person.js",
+    "start:tracker": "node ./src/tracker/tracker.js"
   },
   "keywords": [],
-  "author": "",
+  "author": "Mohammed Isa, Uzair Shaikh",
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "amqplib": "^0.10.4"
+    "amqplib": "^0.10.4",
+    "dotenv": "^16.4.5",
+    "kleur": "^4.1.5"
   }
 }
