@@ -1,97 +1,139 @@
-# Contact Tracing App
+Contact Tracing System
+# Overview
 
-## Overview
-This project is a contact tracing application designed to help track and manage the spread of infectious diseases. The app allows users to log their interactions and receive notifications if they have been in contact with someone who has tested positive.
+This project is a Contact Tracing System designed for tracking individuals' movements on a configurable 2D grid and recording when people come into contact with one another. It is built using Node.js and RabbitMQ to handle real-time communication, with each person moving randomly across the grid and publishing their position. A central tracker listens for these movements and logs contacts when two people share the same position.
 
 ## Features
-- User registration and authentication
-- Logging of user interactions
-- Notifications for potential exposure
-- Data privacy and security
+
+- Randomized movement of individuals on a 2D grid.
+- Real-time tracking of individuals' positions.
+- Detection and logging of contact when individuals share the same position.
+- Configurable grid size, movement speed, and command-line interface.
+- RabbitMQ as the messaging middleware to handle movement updates and queries.
 
 ## Packages Used
-- **React**: For building the user interface
-- **Node.js**: For the backend server
-- **Express**: For handling server routes
-- **MongoDB**: For the database
-- **Mongoose**: For MongoDB object modeling
-- **JWT**: For authentication
-- **Docker**: For containerization
+
+- **Node.js**: The runtime environment for the application.
+- **amqplib**: For communicating with RabbitMQ and handling message queues.
+- **kleur**: For adding colored and styled output to the terminal, making logs easier to read.
+- **dotenv**: For loading environment variables from the `.env` file.
 
 ## Installation
-1. Clone the repository:
-    ```bash
-    git clone https://github.com/yourusername/contact-tracing-app.git
-    ```
-2. Navigate to the project directory:
-    ```bash
-    cd contact-tracing-app
-    ```
-3. Install dependencies:
-    ```bash
-    npm install
-    ```
 
-## Setting Up Docker
-1. Ensure Docker is installed on your machine.
-2. Build the Docker image:
-    ```bash
-    docker build -t contact-tracing-app .
-    ```
-3. Run the Docker container:
-    ```bash
-    docker run -d -p 3000:3000 --env-file .env contact-tracing-app
-    ```
+### Step 1: Clone the Repository
 
-## Setting Up .env File
-Create a `.env` file in the root directory and add the following variables:
-```
-MONGO_URI=your_mongodb_connection_string
-JWT_SECRET=your_jwt_secret
-PORT=3000
+```bash
+git clone https://github.com/yourusername/contact-tracing-system.git
 ```
 
-## Usage
-1. Start the development server:
-    ```bash
-    npm start
-    ```
-2. Open your browser and navigate to `http://localhost:3000`.
+### Step 2: Navigate to the Project Directory
 
-## File Structure
-- **/src**: Contains the source code
-  - **/components**: React components
-  - **/pages**: Different pages of the application
-  - **/services**: API calls and services
-  - **/utils**: Utility functions
-- **/server**: Contains the backend server code
-  - **/models**: Mongoose models
-  - **/routes**: Express routes
-  - **/controllers**: Route controllers
-  - **/middleware**: Middleware functions
+```bash
+cd contact-tracing-system
+```
 
-## Contributing
-1. Fork the repository.
-2. Create a new branch:
-    ```bash
-    git checkout -b feature-name
-    ```
-3. Make your changes and commit them:
-    ```bash
-    git commit -m "Description of changes"
-    ```
-4. Push to the branch:
-    ```bash
-    git push origin feature-name
-    ```
-5. Open a pull request.
+### Step 3: Install Dependencies
+
+Run the following command to install the required Node.js packages:
+
+```bash
+npm install
+```
+
+### Step 4: Set Up the `.env` File
+
+Create a `.env` file in the root directory with the following variables:
+
+```ini
+RABBITMQ_URL=amqp://localhost   # RabbitMQ server URL
+DEFAULT_GRID_SIZE=10            # Default size of the grid (can be overridden by command-line arguments)
+```
+
+## Running the Application
+
+### Step 1: Start the RabbitMQ Server
+
+Ensure RabbitMQ is running on your local machine. If you have Docker installed, you can start RabbitMQ with:
+
+```bash
+docker run -d --name rabbitmq -p 5672:5672 -p 15672:15672 rabbitmq:3-management
+```
+
+### Step 2: Running the Tracker
+
+The tracker listens to the position topic and logs when two people come into contact. Start it with the following command:
+
+```bash
+node tracker.js
+```
+
+### Step 3: Running a Person Simulation
+
+To simulate a person moving on the grid, run:
+
+```bash
+node person.js <username> <gridSize>
+```
+
+Example:
+
+```bash
+node person.js Alice 20
+```
+
+This starts a simulation where Alice moves randomly on a 20x20 grid, publishing her movements to RabbitMQ.
+
+## File Structure and Explanation
+
+### 1. `person.js`
+
+This file simulates an individual's movement on the grid. It publishes the person's position to RabbitMQ at regular intervals. Key functionalities:
+
+- `getRandomPosition`: Generates a random coordinate on the grid.
+- `startPerson`: Connects to RabbitMQ and publishes the person's movements to the position topic.
+- **Error Handling**: Uses `errorHandler.js` for graceful error management.
+
+### 2. `tracker.js`
+
+This file tracks the positions of all individuals. It subscribes to the position topic and logs contacts when individuals share the same position. Key functionalities:
+
+- `startTracker`: Connects to RabbitMQ and listens for position updates. Calls `checkForContacts` to log when two people meet.
+- `checkForContacts`: Compares the position of the moving individual with all other tracked positions and logs contacts.
+
+### 3. `utils/rabbitmq.js`
+
+This utility module is responsible for establishing RabbitMQ connections. Key functions:
+
+- `connectToRabbitMQ`: Creates a connection to the RabbitMQ server and returns a channel for communication.
+
+### 4. `utils/grid.js`
+
+Handles grid-related logic, including random position generation and boundary validation. Key functionalities:
+
+- **Grid Class**: Initializes the grid with a configurable size and contains methods for position generation and validation.
+
+### 5. `utils/errorHandler.js`
+
+Centralized error handling module for logging and managing errors. Key functions:
+
+- `logError`: Logs the error to the console with additional details like stack trace.
+- `handleRabbitMQError`: Logs RabbitMQ connection errors and exits the process.
+- `handleApplicationError`: General-purpose error handler for application-level errors.
+- `handleValidationError`: Handles validation errors, such as invalid grid moves.
+
+## Running Commands
+
+- **Run the Tracker**: `node tracker.js`
+- **Run a Person**: `node person.js <username> <gridSize>`
+
+Example:
+
+```bash
+node person.js Alice 20
+```
 
 ## License
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
 ## Contact
-For any questions or suggestions, please contact [your-email@example.com](mailto:your-email@example.com).
-
----
-
-Mohammed Isa & Uzair Shaikh
+For any questions or suggestions, please contact [isaxxcode@gmail.com](mailto:isaxxcode@gmail.com).
